@@ -1,7 +1,10 @@
 import os
 import struct
+import zstandard as zstd
 
 def unpack_archive(archive_path, folder_path):
+    decompressor = zstd.ZstdDecompressor()
+
     # Getting size of archive
     archive_size = os.path.getsize(archive_path)
 
@@ -22,10 +25,16 @@ def unpack_archive(archive_path, folder_path):
             directory_path = os.path.dirname(file_path)
             if (not os.path.exists(directory_path)):
                 os.makedirs(directory_path)
+
+            # Compressed bool
+            compressed = struct.unpack("?", archive.read(1))[0]
             
             # Getting file data
             file_size = struct.unpack("Q", archive.read(8))[0]
             file_data = archive.read(file_size)
+
+            if (compressed == True):
+                file_data = decompressor.decompress(file_data)
 
             # Writing the data to the file
             with open(file_path, "wb") as f:
