@@ -13,6 +13,16 @@ def pack_folder(folder_path, archive_path, compress=True):
 
         # Loop through directories and files in folder
         for root, dirs, files in os.walk(folder_path):
+            # Adding directories
+            for dir in dirs:
+                # Getting archive relative path
+                directory_path = os.path.join(root, dir)
+                relative_path = os.path.relpath(directory_path, folder_path).encode("utf-8")
+
+                # Writing directory data to archive
+                archive.write(struct.pack("B", 0)) # File type. Directory = 0
+                archive.write(struct.pack("I", len(relative_path))) # Relative path length
+                archive.write(relative_path) # Relative path
 
             # Adding files
             for file in files:
@@ -29,6 +39,7 @@ def pack_folder(folder_path, archive_path, compress=True):
                 relative_path = os.path.relpath(file_path, folder_path).encode("utf-8")
 
                 # Writing file data to the archive
+                archive.write(struct.pack("B", 1)) # File type. File = 1
                 archive.write(struct.pack("I", len(relative_path))) # Relative path length
                 archive.write(relative_path) # Relative path
                 archive.write(struct.pack("?", compress)) # Compressed bool
