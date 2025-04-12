@@ -4,9 +4,13 @@ import zstandard as zstd
 
 from encryption import hash, derive_key, encrypt_data
 
-def pack_folder(folder_path, archive_path, password=None, compress=True):
+def pack_folder(folder_path, archive_directory, archive_name, password, compress=True):
     # Zstd compressor
     compressor = zstd.ZstdCompressor(level=10)
+
+    # Archive path
+    archive_name += ".arct"
+    archive_path = os.path.join(archive_directory, archive_name)
 
     with open(archive_path, "wb") as archive:
 

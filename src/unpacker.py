@@ -1,6 +1,7 @@
 import os
 import struct
 import zstandard as zstd
+from getpass import getpass
 
 from encryption import hash, derive_key, decrypt_data
 
@@ -21,7 +22,8 @@ def unpack_archive(archive_path, folder_path):
         encrypted = struct.unpack("?", archive.read(1))[0]
         if (encrypted == True):
             # Asking for password
-            password = input("Archive needs password: ")
+            print("This archive needs a password.")
+            password = getpass("Enter password: ")
 
             # Getting hashed password and salt
             hashed_password = archive.read(32)
@@ -72,6 +74,11 @@ def unpack_archive(archive_path, folder_path):
                 # Decompressing data
                 if (compressed == True):
                     file_data = decompressor.decompress(file_data)
+                
+                # Creating directory if it does not exists
+                directory = os.path.dirname(file_path)
+                if (os.path.exists(directory) == False):
+                    os.makedirs(directory)
 
                 # Writing the data to the file
                 with open(file_path, "wb") as f:
