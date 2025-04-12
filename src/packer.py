@@ -2,14 +2,30 @@ import os
 import struct
 import zstandard as zstd
 
-def pack_folder(folder_path, archive_path, compress=True):
-    # zstd compressor
+from encryption import hash, derive_key, encrypt_data
+
+def pack_folder(folder_path, archive_path, password=None, compress=True):
+    # Zstd compressor
     compressor = zstd.ZstdCompressor(level=10)
 
     with open(archive_path, "wb") as archive:
 
         # Archive header
         archive.write(b"SQUISHED_ARCHIVE")
+
+        # Adding password
+        if (password):
+            archive.write(struct.pack("?", True))
+
+            # Hashing password
+            hashed_password, salt = hash(password)
+            archive.write(hashed_password) # Hashed password
+            archive.write(salt) # Salt
+
+            # Getting encryption key
+            key = derive_key(password, salt)
+        else:
+            archive.write(struct.pack("?", False))
 
         # Loop through directories and files in folder
         for root, dirs, files in os.walk(folder_path):
@@ -34,6 +50,10 @@ def pack_folder(folder_path, archive_path, compress=True):
                 # Compression
                 if (compress == True):
                     file_data = compressor.compress(file_data)
+
+                # Encryption
+                if (password):
+                    file_data = encrypt_data(file_data, key)
 
                 # Getting relative path
                 relative_path = os.path.relpath(file_path, folder_path).encode("utf-8")

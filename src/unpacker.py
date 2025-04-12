@@ -2,8 +2,10 @@ import os
 import struct
 import zstandard as zstd
 
+from encryption import hash, derive_key, decrypt_data
+
 def unpack_archive(archive_path, folder_path):
-    # zstd decompressor
+    # Zstd decompressor
     decompressor = zstd.ZstdDecompressor()
 
     # Getting size of archive
@@ -14,6 +16,24 @@ def unpack_archive(archive_path, folder_path):
         archive_header = archive.read(16)
         if (archive_header != b"SQUISHED_ARCHIVE"):
             return
+
+        # Checking if file is encrypted
+        encrypted = struct.unpack("?", archive.read(1))[0]
+        if (encrypted == True):
+            # Asking for password
+            password = input("Archive needs password: ")
+
+            # Getting hashed password and salt
+            hashed_password = archive.read(32)
+            salt = archive.read(32)
+
+            # Checking if passwords matches
+            if (hashed_password != hash(password, salt)[0]):
+                print("Passwords do not match.")
+                return
+            
+            # Getting key
+            key = derive_key(password, salt)
         
         # Looping until the stream has reached the end of the file
         while archive.tell() != archive_size:
@@ -27,8 +47,9 @@ def unpack_archive(archive_path, folder_path):
                 relative_path = archive.read(relative_path_length).decode("utf-8")
                 directory_path = os.path.join(folder_path, relative_path)
 
-                # Creating directory
-                os.makedirs(directory_path)
+                # Creating directory if it does not exists
+                if (os.path.exists(directory_path) == False):
+                    os.makedirs(directory_path)
             
             # Files
             elif (file_type == 1):
@@ -44,6 +65,11 @@ def unpack_archive(archive_path, folder_path):
                 file_size = struct.unpack("Q", archive.read(8))[0]
                 file_data = archive.read(file_size)
 
+                # Decrypting data
+                if (encrypted == True):
+                    file_data = decrypt_data(file_data, key)
+
+                # Decompressing data
                 if (compressed == True):
                     file_data = decompressor.decompress(file_data)
 
