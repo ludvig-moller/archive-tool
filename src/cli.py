@@ -80,5 +80,3 @@ def cli():
         
         # List archive
         list_archive(args.archive)
-
-cli()
