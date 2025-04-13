@@ -4,7 +4,7 @@ import zstandard as zstd
 
 from encryption import hash, derive_key, encrypt_data
 
-def pack_folder(folder_path, archive_directory, archive_name, password, compress=True):
+def pack_folder(source_path, archive_directory, archive_name, password, compress=True):
     # Zstd compressor
     compressor = zstd.ZstdCompressor(level=10)
 
@@ -14,7 +14,7 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
 
     # Getting folder size
     folder_size = 0
-    for root, dirs, files in os.walk(folder_path):
+    for root, dirs, files in os.walk(source_path):
         for file in files:
             file_path = os.path.join(root, file)
             folder_size += os.path.getsize(file_path)
@@ -22,7 +22,7 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
     # Start of progress
     progress = 0
     print("")
-    print(f"\tPacking folder: {os.path.basename(folder_path)} => 0%", end="\r")
+    print(f"\tPacking folder: {os.path.basename(source_path)} => 0%", end="\r")
 
     # Opening archive path
     with open(archive_path, "wb") as archive:
@@ -50,12 +50,12 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
             archive.write(struct.pack("?", False))
 
         # Loop through directories and files in folder
-        for root, dirs, files in os.walk(folder_path):
+        for root, dirs, files in os.walk(source_path):
             # Adding directories
             for dir in dirs:
                 # Getting archive relative path
                 directory_path = os.path.join(root, dir)
-                relative_path = os.path.relpath(directory_path, folder_path).encode("utf-8")
+                relative_path = os.path.relpath(directory_path, source_path).encode("utf-8")
 
                 # Encryption path
                 if (password):
@@ -75,10 +75,10 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
                 
                 # Updating progress
                 progress += len(file_data)
-                print(f"\tPacking folder: {os.path.basename(folder_path)} => {round(progress/folder_size*100)}%", end="\r")
+                print(f"\tPacking folder: {os.path.basename(source_path)} => {round(progress/folder_size*100)}%", end="\r")
 
                 # Getting relative path
-                relative_path = os.path.relpath(file_path, folder_path).encode("utf-8")
+                relative_path = os.path.relpath(file_path, source_path).encode("utf-8")
                 
                 # Compression
                 if (compress == True):

@@ -5,7 +5,7 @@ from getpass import getpass
 
 from encryption import hash, derive_key, decrypt_data
 
-def unpack_archive(archive_path, folder_path):
+def unpack_archive(archive_path, output_path):
     # Zstd decompressor
     decompressor = zstd.ZstdDecompressor()
 
@@ -63,7 +63,7 @@ def unpack_archive(archive_path, folder_path):
                     relative_path = relative_path.decode("utf-8")
 
                 # Putting togheter full directory path
-                directory_path = os.path.join(folder_path, relative_path)
+                directory_path = os.path.join(output_path, relative_path)
 
                 # Creating directory if it does not exists
                 if (os.path.exists(directory_path) == False):
@@ -91,7 +91,7 @@ def unpack_archive(archive_path, folder_path):
                     file_data = decompressor.decompress(file_data)
                 
                 # Putting togheter full file path
-                file_path = os.path.join(folder_path, relative_path)
+                file_path = os.path.join(output_path, relative_path)
                 
                 # Creating directory if it does not exists
                 directory = os.path.dirname(file_path)
@@ -107,4 +107,4 @@ def unpack_archive(archive_path, folder_path):
 
     # End of progress
     print("\n")
-    print(f"Archive contents located at: {folder_path}")
+    print(f"Archive contents located at: {output_path}")
