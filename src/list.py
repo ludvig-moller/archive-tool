@@ -52,6 +52,8 @@ def list_archive(archive_path):
                 # Decrypting data
                 if (encrypted == True):
                     relative_path = decrypt_data(relative_path, key).decode("utf-8")
+                else:
+                    relative_path = relative_path.decode("utf-8")
 
                 # Spliting path into a list
                 path_list = relative_path.split("\\")
@@ -68,6 +70,8 @@ def list_archive(archive_path):
                 # Decrypting data
                 if (encrypted == True):
                     relative_path = decrypt_data(relative_path, key).decode("utf-8")
+                else:
+                    relative_path = relative_path.decode("utf-8")
 
                 # Spliting path into a list
                 path_list = relative_path.split("\\")

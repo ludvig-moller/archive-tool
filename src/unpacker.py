@@ -37,6 +37,10 @@ def unpack_archive(archive_path, folder_path):
             # Getting key
             key = derive_key(password, salt)
         
+        # Start of progress
+        print("")
+        print(f"\tUnpacking archive: {os.path.basename(archive_path)} => 0%", end="\r")
+        
         # Looping until the stream has reached the end of the file
         while archive.tell() != archive_size:
             # File type
@@ -51,6 +55,8 @@ def unpack_archive(archive_path, folder_path):
                 # Decrypting data
                 if (encrypted == True):
                     relative_path = decrypt_data(relative_path, key).decode("utf-8")
+                else:
+                    relative_path = relative_path.decode("utf-8")
 
                 # Putting togheter full directory path
                 directory_path = os.path.join(folder_path, relative_path)
@@ -76,6 +82,8 @@ def unpack_archive(archive_path, folder_path):
                 if (encrypted == True):
                     relative_path = decrypt_data(relative_path, key).decode("utf-8")
                     file_data = decrypt_data(file_data, key)
+                else:
+                    relative_path = relative_path.decode("utf-8")
 
                 # Decompressing data
                 if (compressed == True):
@@ -92,3 +100,10 @@ def unpack_archive(archive_path, folder_path):
                 # Writing the data to the file
                 with open(file_path, "wb") as f:
                     f.write(file_data)
+            
+            # Updating progress
+            print(f"\tUnpacking archive: {os.path.basename(archive_path)} => {round(archive.tell()/archive_size*100)}%", end="\r")
+
+    # End of progress
+    print("\n")
+    print(f"Archive contents located at: {folder_path}")

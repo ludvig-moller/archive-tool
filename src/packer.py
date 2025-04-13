@@ -12,6 +12,19 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
     archive_name += ".arct"
     archive_path = os.path.join(archive_directory, archive_name)
 
+    # Getting folder size
+    folder_size = 0
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            folder_size += os.path.getsize(file_path)
+
+    # Start of progress
+    progress = 0
+    print("")
+    print(f"\tPacking folder: {os.path.basename(folder_path)} => 0%", end="\r")
+
+    # Opening archive path
     with open(archive_path, "wb") as archive:
 
         # Archive header
@@ -54,6 +67,10 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
                 file_path = os.path.join(root, file)
                 with open(file_path, "rb") as f:
                     file_data = f.read()
+                
+                # Updating progress
+                progress += len(file_data)
+                print(f"\tPacking folder: {os.path.basename(folder_path)} => {round(progress/folder_size*100)}%", end="\r")
 
                 # Getting relative path
                 relative_path = os.path.relpath(file_path, folder_path).encode("utf-8")
@@ -74,3 +91,7 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
                 archive.write(struct.pack("?", compress)) # Compressed bool
                 archive.write(struct.pack("Q", len(file_data))) # File size
                 archive.write(file_data) # File data
+    
+    # End of progress
+    print("\n")
+    print(f"Archive located at: {archive_path}")
