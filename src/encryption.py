@@ -15,6 +15,7 @@ def hash(password: str, salt: bytes=None):
     digest.update(salt)
     digest.update(password.encode("utf-8"))
     return digest.finalize(), salt
+
 # Generating key
 def derive_key(password: str, salt: bytes):
     kdf = PBKDF2HMAC(
