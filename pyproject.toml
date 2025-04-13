@@ -1,0 +1,18 @@
+[project]
+name = "archive-tool"
+version = "0.1.0"
+description = ""
+authors = [{ name = "Ludvig Möller" }]
+readme = "README.md"
+license = "MIT"
+dependencies = [
+    "cryptography",
+    "zstandard"
+]
+
+[project.scripts]
+archive-tool = "cli:cli"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
