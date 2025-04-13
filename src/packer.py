@@ -39,6 +39,10 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
                 directory_path = os.path.join(root, dir)
                 relative_path = os.path.relpath(directory_path, folder_path).encode("utf-8")
 
+                # Encryption path
+                if (password):
+                    relative_path = encrypt_data(relative_path, key)
+
                 # Writing directory data to archive
                 archive.write(struct.pack("B", 0)) # File type. Directory = 0
                 archive.write(struct.pack("I", len(relative_path))) # Relative path length
@@ -50,6 +54,9 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
                 file_path = os.path.join(root, file)
                 with open(file_path, "rb") as f:
                     file_data = f.read()
+
+                # Getting relative path
+                relative_path = os.path.relpath(file_path, folder_path).encode("utf-8")
                 
                 # Compression
                 if (compress == True):
@@ -57,10 +64,8 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
 
                 # Encryption
                 if (password):
+                    relative_path = encrypt_data(relative_path, key)
                     file_data = encrypt_data(file_data, key)
-
-                # Getting relative path
-                relative_path = os.path.relpath(file_path, folder_path).encode("utf-8")
 
                 # Writing file data to the archive
                 archive.write(struct.pack("B", 1)) # File type. File = 1

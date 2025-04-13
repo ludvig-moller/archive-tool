@@ -2,6 +2,9 @@ import os
 import struct
 from functools import reduce
 import operator
+from getpass import getpass
+
+from encryption import hash, derive_key, decrypt_data
 
 def list_archive(archive_path):
     # Getting size of archive
@@ -13,10 +16,24 @@ def list_archive(archive_path):
         if (archive_header != b"SQUISHED_ARCHIVE"):
             return
         
-        # If encrypted move forward 64 bytes
+        # Checking if file is encrypted
         encrypted = struct.unpack("?", archive.read(1))[0]
         if (encrypted == True):
-            archive.seek(64, 1)
+            # Asking for password
+            print("This archive needs a password.")
+            password = getpass("Enter password: ")
+
+            # Getting hashed password and salt
+            hashed_password = archive.read(32)
+            salt = archive.read(32)
+
+            # Checking if passwords matches
+            if (hashed_password != hash(password, salt)[0]):
+                print("\nPasswords do not match.")
+                return
+            
+            # Getting key
+            key = derive_key(password, salt)
 
         # Dictonairy for list all files
         archive_data = {}
@@ -30,7 +47,13 @@ def list_archive(archive_path):
             if (file_type == 0):
                 # Getting directory path
                 relative_path_length = struct.unpack("I", archive.read(4))[0]
-                relative_path = archive.read(relative_path_length).decode("utf-8")
+                relative_path = archive.read(relative_path_length)
+
+                # Decrypting data
+                if (encrypted == True):
+                    relative_path = decrypt_data(relative_path, key).decode("utf-8")
+
+                # Spliting path into a list
                 path_list = relative_path.split("\\")
 
                 # Create the new directory
@@ -40,7 +63,13 @@ def list_archive(archive_path):
             elif (file_type == 1):
                 # Getting file path
                 relative_path_length = struct.unpack("I", archive.read(4))[0]
-                relative_path = archive.read(relative_path_length).decode("utf-8")
+                relative_path = archive.read(relative_path_length)
+
+                # Decrypting data
+                if (encrypted == True):
+                    relative_path = decrypt_data(relative_path, key).decode("utf-8")
+
+                # Spliting path into a list
                 path_list = relative_path.split("\\")
 
                 # Skipping compressed bool

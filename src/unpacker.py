@@ -31,7 +31,7 @@ def unpack_archive(archive_path, folder_path):
 
             # Checking if passwords matches
             if (hashed_password != hash(password, salt)[0]):
-                print("Passwords do not match.")
+                print("\nPasswords do not match.")
                 return
             
             # Getting key
@@ -46,7 +46,13 @@ def unpack_archive(archive_path, folder_path):
             if (file_type == 0):
                 # Getting directory path
                 relative_path_length = struct.unpack("I", archive.read(4))[0]
-                relative_path = archive.read(relative_path_length).decode("utf-8")
+                relative_path = archive.read(relative_path_length)
+
+                # Decrypting data
+                if (encrypted == True):
+                    relative_path = decrypt_data(relative_path, key).decode("utf-8")
+
+                # Putting togheter full directory path
                 directory_path = os.path.join(folder_path, relative_path)
 
                 # Creating directory if it does not exists
@@ -57,8 +63,7 @@ def unpack_archive(archive_path, folder_path):
             elif (file_type == 1):
                 # Getting file path
                 relative_path_length = struct.unpack("I", archive.read(4))[0]
-                relative_path = archive.read(relative_path_length).decode("utf-8")
-                file_path = os.path.join(folder_path, relative_path)
+                relative_path = archive.read(relative_path_length)
 
                 # Compressed bool
                 compressed = struct.unpack("?", archive.read(1))[0]
@@ -69,11 +74,15 @@ def unpack_archive(archive_path, folder_path):
 
                 # Decrypting data
                 if (encrypted == True):
+                    relative_path = decrypt_data(relative_path, key).decode("utf-8")
                     file_data = decrypt_data(file_data, key)
 
                 # Decompressing data
                 if (compressed == True):
                     file_data = decompressor.decompress(file_data)
+                
+                # Putting togheter full file path
+                file_path = os.path.join(folder_path, relative_path)
                 
                 # Creating directory if it does not exists
                 directory = os.path.dirname(file_path)
