@@ -28,10 +28,14 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
     with open(archive_path, "wb") as archive:
 
         # Archive header
-        archive.write(b"SQUISHED_ARCHIVE")
+        archive.write(b"ARCHIVE_TOOL")
+        
+        # Compressed bool
+        archive.write(struct.pack("?", compress))
 
         # Adding password
         if (password):
+            # Encrypted bool
             archive.write(struct.pack("?", True))
 
             # Hashing password
@@ -42,6 +46,7 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
             # Getting encryption key
             key = derive_key(password, salt)
         else:
+            # Encrypted bool
             archive.write(struct.pack("?", False))
 
         # Loop through directories and files in folder
@@ -88,7 +93,6 @@ def pack_folder(folder_path, archive_directory, archive_name, password, compress
                 archive.write(struct.pack("B", 1)) # File type. File = 1
                 archive.write(struct.pack("I", len(relative_path))) # Relative path length
                 archive.write(relative_path) # Relative path
-                archive.write(struct.pack("?", compress)) # Compressed bool
                 archive.write(struct.pack("Q", len(file_data))) # File size
                 archive.write(file_data) # File data
     

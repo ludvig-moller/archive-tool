@@ -12,9 +12,13 @@ def list_archive(archive_path):
 
     with open(archive_path, "rb") as archive:
         # Checking if archive header exists
-        archive_header = archive.read(16)
-        if (archive_header != b"SQUISHED_ARCHIVE"):
+        archive_header = archive.read(12)
+        if (archive_header != b"ARCHIVE_TOOL"):
+            print("Can't find the archive header.")
             return
+        
+        # Skipping compressed bool
+        archive.seek(1, 1)
         
         # Checking if file is encrypted
         encrypted = struct.unpack("?", archive.read(1))[0]
@@ -75,9 +79,6 @@ def list_archive(archive_path):
 
                 # Spliting path into a list
                 path_list = relative_path.split("\\")
-
-                # Skipping compressed bool
-                archive.seek(1, 1)
 
                 # Getting file size
                 file_size = struct.unpack("Q", archive.read(8))[0]

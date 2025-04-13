@@ -14,9 +14,13 @@ def unpack_archive(archive_path, folder_path):
 
     with open(archive_path, "rb") as archive:
         # Checking if archive header exists
-        archive_header = archive.read(16)
-        if (archive_header != b"SQUISHED_ARCHIVE"):
+        archive_header = archive.read(12)
+        if (archive_header != b"ARCHIVE_TOOL"):
+            print("Can't find the archive header.")
             return
+
+        # Compressed bool
+        compressed = struct.unpack("?", archive.read(1))[0]
 
         # Checking if file is encrypted
         encrypted = struct.unpack("?", archive.read(1))[0]
@@ -70,9 +74,6 @@ def unpack_archive(archive_path, folder_path):
                 # Getting file path
                 relative_path_length = struct.unpack("I", archive.read(4))[0]
                 relative_path = archive.read(relative_path_length)
-
-                # Compressed bool
-                compressed = struct.unpack("?", archive.read(1))[0]
                 
                 # Getting file data
                 file_size = struct.unpack("Q", archive.read(8))[0]
