@@ -1,3 +1,4 @@
+import os
 import argparse
 from getpass import getpass
 
@@ -42,13 +43,42 @@ def cli():
         # Get compression flag
         compress = not args.no_compress
 
+        # Checking for bad source arg
+        if (not os.path.exists(args.source)):
+            print("Source directory dose not exist.")
+            return
+        elif (not os.path.isdir(args.source)):
+            print("Source has to be a directory.")
+            return
+        elif (len(os.listdir(args.source)) == 0):
+            print("Source directory is empty.")
+            return
+
         # Pack folder
         pack_folder(args.source, args.output, args.name, password=password, compress=compress)
 
     elif (args.command == "unpack"):
+        # Checking for bad archive arg
+        if (not os.path.exists(args.archive)):
+            print("Archive dose not exist.")
+            return
+        elif (os.path.basename(args.archive)[-5:] != ".arct"):
+            print('Archive does not have file extension ".arct".')
+            return
+
         # Unpack archive
         unpack_archive(args.archive, args.output)
     
     elif (args.command == "list"):
+        # Checking for bad archive arg
+        if (not os.path.exists(args.archive)):
+            print("Archive dose not exist.")
+            return
+        elif (os.path.basename(args.archive)[-5:] != ".arct"):
+            print('Archive does not have file extension ".arct".')
+            return
+        
         # List archive
         list_archive(args.archive)
+
+cli()
