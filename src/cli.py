@@ -3,6 +3,7 @@ from getpass import getpass
 
 from packer import pack_folder
 from unpacker import unpack_archive
+from list import list_archive
 
 def cli():
     parser = argparse.ArgumentParser(description="Pack folder into archives with optional compression and encryption")
@@ -21,6 +22,10 @@ def cli():
     unpack_parser = subparsers.add_parser("unpack", help="Unpack an archive in to a folder.")
     unpack_parser.add_argument("archive", help="The path to the archive you want to unpack.")
     unpack_parser.add_argument("output", help="The path to the folder you want to unpack the contents of the archive.")
+
+    # List command
+    list_parser = subparsers.add_parser("list", help="List files within an archive")
+    list_parser.add_argument("archive", help="The path to the archive you want to list.")
 
     # Parse args
     args = parser.parse_args()
@@ -43,3 +48,7 @@ def cli():
     elif (args.command == "unpack"):
         # Unpack archive
         unpack_archive(args.archive, args.output)
+    
+    elif (args.command == "list"):
+        # List archive
+        list_archive(args.archive)
